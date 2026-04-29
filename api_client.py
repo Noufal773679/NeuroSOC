@@ -1,8 +1,7 @@
 import requests
 import streamlit as st
 
-BACKEND_URL = st.secrets.get("BACKEND_URL", "https://noufal24-neurosoc.hf.space"
-)
+BACKEND_URL = st.secrets.get("BACKEND_URL", "http://localhost:7860")
 
 class APIClient:
     def __init__(self):
@@ -22,6 +21,8 @@ class APIClient:
             )
             if resp.status_code == 200:
                 return resp.json()
+            elif resp.status_code == 403:
+                return None  # Not admin, don't show error
             else:
                 st.error(f"API Error {resp.status_code}: {resp.text}")
                 return None
@@ -32,23 +33,30 @@ class APIClient:
     def _post(self, endpoint, data=None, files=None):
         if data is None:
             data = {}
-        if isinstance(data, dict) and not files:
-            data["token"] = self.token
         
         try:
             if files:
+                # File upload: token in form data
+                form_data = {"token": self.token}
+                if isinstance(data, dict):
+                    form_data.update(data)
+                
                 resp = requests.post(
                     f"{self.base_url}{endpoint}", 
                     files=files, 
-                    data=data,
-                    timeout=60
+                    data=form_data,
+                    timeout=120  # Longer timeout for uploads
                 )
             else:
+                # Regular POST: token in JSON
+                if isinstance(data, dict):
+                    data["token"] = self.token
                 resp = requests.post(
                     f"{self.base_url}{endpoint}", 
                     json=data,
                     timeout=30
                 )
+            
             if resp.status_code in [200, 201]:
                 return resp.json()
             else:
@@ -78,6 +86,7 @@ class APIClient:
             st.error(f"API Error: {str(e)}")
             return None
     
+    # ==================== AUTH ====================
     def login(self, username, password):
         result = self._post("/auth/login", {"username": username, "password": password})
         if result:
@@ -111,21 +120,22 @@ class APIClient:
             del st.session_state[key]
         st.rerun()
     
+    # ==================== UPLOAD ====================
     def upload_csv(self, file):
         files = {"file": (file.name, file.getvalue(), "text/csv")}
-        data = {"token": self.token}
-        return self._post("/upload/", data=data, files=files)
+        return self._post("/upload/", files=files)
     
+    # ==================== TRAINING ====================
     def start_training(self, dataset_id, config):
         return self._post("/train/start", {
             "dataset_id": dataset_id,
-            "token": self.token,
             "config": config
         })
     
     def get_training_status(self, job_id):
         return self._get(f"/train/status/{job_id}")
     
+    # ==================== PREDICTIONS ====================
     def get_predictions(self, model_id):
         return self._get(f"/predictions/{model_id}")
     
@@ -135,23 +145,22 @@ class APIClient:
     def download_results(self, model_id):
         return f"{self.base_url}/predictions/{model_id}/download?token={self.token}"
     
+    # ==================== ADMIN ====================
     def get_all_users(self):
         return self._get("/admin/users")
     
     def create_user(self, username, password, role):
         return self._post("/admin/users/create", {
-            "token": self.token,
             "target_username": username,
             "new_password": password,
             "new_role": role
         })
     
     def delete_user(self, user_id):
-        return self._delete(f"/admin/users/{user_id}", {"token": self.token})
+        return self._delete(f"/admin/users/{user_id}")
     
     def reset_password(self, username, new_password):
         return self._post("/admin/users/reset-password", {
-            "token": self.token,
             "target_username": username,
             "new_password": new_password
         })
