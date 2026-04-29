@@ -102,7 +102,6 @@ def render_training_config():
         st.session_state.current_page = 'training'
         st.rerun()
     
-    # Navigation
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Back to Upload"):
@@ -113,7 +112,6 @@ def render_training_config():
             from pages.auth import logout
             logout()
     
-    # Sidebar
     with st.sidebar:
         st.header("Session Info")
         st.write(f"User: **{st.session_state.get('username', 'N/A')}**")

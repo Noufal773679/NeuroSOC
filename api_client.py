@@ -1,8 +1,8 @@
 import requests
 import streamlit as st
 
-# Get backend URL from secrets or default
-BACKEND_URL = st.secrets.get("BACKEND_URL", "http://localhost:7860")
+BACKEND_URL = st.secrets.get("BACKEND_URL", "https://noufal24-neurosoc.hf.space"
+)
 
 class APIClient:
     def __init__(self):
@@ -10,47 +10,74 @@ class APIClient:
         self.token = st.session_state.get("token")
     
     def _get(self, endpoint, params=None):
-        headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
+        if params is None:
+            params = {}
+        params["token"] = self.token
+        
         try:
-            resp = requests.get(f"{self.base_url}{endpoint}", params=params, headers=headers, timeout=30)
-            return resp.json() if resp.status_code == 200 else None
+            resp = requests.get(
+                f"{self.base_url}{endpoint}", 
+                params=params, 
+                timeout=30
+            )
+            if resp.status_code == 200:
+                return resp.json()
+            else:
+                st.error(f"API Error {resp.status_code}: {resp.text}")
+                return None
         except Exception as e:
             st.error(f"API Error: {str(e)}")
             return None
     
     def _post(self, endpoint, data=None, files=None):
-        headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
+        if data is None:
+            data = {}
+        if isinstance(data, dict) and not files:
+            data["token"] = self.token
+        
         try:
             if files:
                 resp = requests.post(
                     f"{self.base_url}{endpoint}", 
                     files=files, 
                     data=data,
-                    headers=headers,
                     timeout=60
                 )
             else:
                 resp = requests.post(
                     f"{self.base_url}{endpoint}", 
                     json=data,
-                    headers=headers,
                     timeout=30
                 )
-            return resp.json() if resp.status_code in [200, 201] else None
+            if resp.status_code in [200, 201]:
+                return resp.json()
+            else:
+                st.error(f"API Error {resp.status_code}: {resp.text}")
+                return None
         except Exception as e:
             st.error(f"API Error: {str(e)}")
             return None
     
     def _delete(self, endpoint, data=None):
-        headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
+        if data is None:
+            data = {}
+        data["token"] = self.token
+        
         try:
-            resp = requests.delete(f"{self.base_url}{endpoint}", json=data, headers=headers, timeout=30)
-            return resp.json() if resp.status_code == 200 else None
+            resp = requests.delete(
+                f"{self.base_url}{endpoint}", 
+                json=data, 
+                timeout=30
+            )
+            if resp.status_code == 200:
+                return resp.json()
+            else:
+                st.error(f"API Error {resp.status_code}: {resp.text}")
+                return None
         except Exception as e:
             st.error(f"API Error: {str(e)}")
             return None
     
-    # ==================== AUTH ====================
     def login(self, username, password):
         result = self._post("/auth/login", {"username": username, "password": password})
         if result:
@@ -84,13 +111,11 @@ class APIClient:
             del st.session_state[key]
         st.rerun()
     
-    # ==================== UPLOAD ====================
     def upload_csv(self, file):
         files = {"file": (file.name, file.getvalue(), "text/csv")}
         data = {"token": self.token}
         return self._post("/upload/", data=data, files=files)
     
-    # ==================== TRAINING ====================
     def start_training(self, dataset_id, config):
         return self._post("/train/start", {
             "dataset_id": dataset_id,
@@ -101,19 +126,17 @@ class APIClient:
     def get_training_status(self, job_id):
         return self._get(f"/train/status/{job_id}")
     
-    # ==================== PREDICTIONS ====================
     def get_predictions(self, model_id):
-        return self._get(f"/predictions/{model_id}", {"token": self.token})
+        return self._get(f"/predictions/{model_id}")
     
     def get_stats(self, model_id):
-        return self._get(f"/predictions/{model_id}/stats", {"token": self.token})
+        return self._get(f"/predictions/{model_id}/stats")
     
     def download_results(self, model_id):
         return f"{self.base_url}/predictions/{model_id}/download?token={self.token}"
     
-    # ==================== ADMIN ====================
     def get_all_users(self):
-        return self._get("/admin/users", {"token": self.token})
+        return self._get("/admin/users")
     
     def create_user(self, username, password, role):
         return self._post("/admin/users/create", {
@@ -134,7 +157,7 @@ class APIClient:
         })
     
     def get_system_stats(self):
-        return self._get("/admin/stats", {"token": self.token})
+        return self._get("/admin/stats")
 
 def get_client():
     if "api_client" not in st.session_state:

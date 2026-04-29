@@ -19,7 +19,6 @@ def render_analytics():
         st.error("Failed to load analytics data")
         return
     
-    # Sidebar
     with st.sidebar:
         st.header("Navigation")
         if st.button("Dashboard", use_container_width=True):
@@ -43,7 +42,6 @@ def render_analytics():
             from pages.auth import logout
             logout()
     
-    # Metrics
     metrics = predictions.get('metrics', {})
     if metrics:
         st.subheader("Model Performance")
@@ -54,7 +52,6 @@ def render_analytics():
         col4.metric("F1-Score", f"{metrics.get('f1', 0):.4f}")
         col5.metric("ROC-AUC", f"{metrics.get('roc_auc', 0):.4f}")
     
-    # Confusion matrix data
     st.subheader("Classification Results")
     col1, col2 = st.columns(2)
     with col1:
@@ -81,7 +78,6 @@ def render_analytics():
         )
         st.plotly_chart(fig, use_container_width=True)
     
-    # Download
     st.subheader("Export Data")
     download_url = client.download_results(model_id)
     st.markdown(f"[📥 Download Full Predictions CSV]({download_url})")

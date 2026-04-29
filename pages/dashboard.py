@@ -1,7 +1,4 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.graph_objects as go
 import plotly.express as px
 from api_client import get_client
 
@@ -24,7 +21,6 @@ def render_dashboard():
     client = get_client()
     model_id = st.session_state.model_id
     
-    # Fetch stats from backend
     with st.spinner("Loading dashboard data..."):
         stats = client.get_stats(model_id)
     
@@ -32,7 +28,6 @@ def render_dashboard():
         st.error("Failed to load dashboard data")
         return
     
-    # Sidebar
     with st.sidebar:
         st.header("Navigation")
         
@@ -68,11 +63,9 @@ def render_dashboard():
             from pages.auth import logout
             logout()
     
-    # Main content
     tab1, tab2, tab3 = st.tabs(["Real-time Monitoring", "Attack Distribution", "System Health"])
     
     with tab1:
-        # Header stats
         col1, col2, col3, col4, col5 = st.columns(5)
         with col1:
             st.metric("Critical", stats.get('critical', 0), delta_color="inverse")
@@ -93,7 +86,6 @@ def render_dashboard():
         
         st.markdown("---")
         
-        # Attack alerts
         st.subheader("Recent Alerts")
         attack_types = stats.get('attack_types', {})
         if attack_types:
@@ -128,6 +120,5 @@ def render_dashboard():
         with col2:
             st.metric("Max Anomaly Score", f"{stats.get('max_score', 0):.4f}")
         
-        # Download button
         download_url = client.download_results(model_id)
         st.markdown(f"[Download Full Results CSV]({download_url})")

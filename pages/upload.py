@@ -21,6 +21,8 @@ def render_upload():
     if uploaded_file is not None:
         client = get_client()
         
+        st.info(f"File: {uploaded_file.name} ({uploaded_file.size / 1024 / 1024:.1f} MB)")
+        
         with st.spinner("Uploading and processing data..."):
             result = client.upload_csv(uploaded_file)
         
@@ -42,7 +44,6 @@ def render_upload():
         else:
             st.error("Upload failed. Please check your file and try again.")
     
-    # Sidebar
     with st.sidebar:
         st.header("Session Info")
         st.write(f"User: **{st.session_state.get('username', 'N/A')}**")

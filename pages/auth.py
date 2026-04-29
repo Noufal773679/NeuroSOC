@@ -7,7 +7,6 @@ def render_login():
     
     client = get_client()
     
-    # Check first run
     first_run = client.check_first_run()
     if first_run and first_run.get("first_run"):
         render_first_admin_setup()

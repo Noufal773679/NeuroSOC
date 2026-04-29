@@ -4,7 +4,6 @@ from api_client import get_client
 def render_threat_intel():
     st.markdown('<div class="main-header">THREAT INTELLIGENCE</div>', unsafe_allow_html=True)
     
-    # Sidebar
     with st.sidebar:
         st.header("Navigation")
         if st.button("Dashboard", use_container_width=True):
@@ -31,6 +30,5 @@ def render_threat_intel():
     st.info("Threat Intelligence features require Association Rule Mining to be enabled during training.")
     st.write("After training with ARM enabled, attack signatures and frequent patterns will be displayed here.")
     
-    # Placeholder for future ARM integration
     st.subheader("Attack Signatures")
     st.warning("Association Rule Mining results will be available in a future update.")

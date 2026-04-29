@@ -40,7 +40,6 @@ def main():
         initial_sidebar_state="collapsed" if not st.session_state.get('authenticated') else "expanded"
     )
     
-    # Load CSS
     st.markdown("""
     <style>
         .stApp {

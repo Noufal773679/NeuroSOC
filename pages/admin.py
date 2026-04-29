@@ -10,7 +10,6 @@ def render_admin_panel():
     
     client = get_client()
     
-    # Sidebar
     with st.sidebar:
         st.header("Navigation")
         if st.button("Dashboard", use_container_width=True):
@@ -29,7 +28,6 @@ def render_admin_panel():
             from pages.auth import logout
             logout()
     
-    # Tabs
     tab1, tab2, tab3, tab4 = st.tabs(["System Stats", "All Users", "Add User", "Password Reset"])
     
     with tab1:

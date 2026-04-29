@@ -28,7 +28,6 @@ def render_training():
     config = st.session_state.training_config
     dataset_id = st.session_state.dataset_id
     
-    # Start training if not already started
     if "job_id" not in st.session_state:
         with st.spinner("Starting training on backend..."):
             result = client.start_training(dataset_id, config)
@@ -44,7 +43,6 @@ def render_training():
     
     job_id = st.session_state.job_id
     
-    # Poll for status
     status_placeholder = st.empty()
     progress_bar = st.progress(0)
     status_text = st.empty()
@@ -88,11 +86,9 @@ def render_training():
         progress_bar.progress(min(1.0, progress))
         status_text.info(f"⏳ {status.get('message', 'Processing...')}")
         
-        # Auto-refresh
         time.sleep(3)
         st.rerun()
     
-    # Sidebar
     with st.sidebar:
         st.header("Session Info")
         st.write(f"User: **{st.session_state.get('username', 'N/A')}**")
